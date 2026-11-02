@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCH Smart Phone Security & Deposit Management System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN for 3D Matrix Visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts: Orbitron & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        matrixDark: '#030704',
+                        matrixPanel: '#08120b',
+                        matrixBorder: '#0f3818',
+                        matrixGreen: '#00ff66',
+                        matrixGreenDim: '#00441b',
+                        matrixGreenGlow: 'rgba(0, 255, 102, 0.3)',
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #030704;
+            color: #e5e7eb;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .glow-text {
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.6), 0 0 20px rgba(0, 255, 102, 0.3);
+        }
+        .glow-box {
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.15), inset 0 0 15px rgba(0, 255, 102, 0.05);
+            border: 1px solid rgba(0, 255, 102, 0.3);
+        }
+        .glass-panel {
+            background: rgba(8, 18, 11, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 102, 0.2);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #030704; }
+        ::-webkit-scrollbar-thumb { background: #0f3818; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00ff66; }
+        
+        /* Scanline effect */
+        .scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative">
+    <!-- Cinematic Intro Overlay -->
+    <div id="intro-screen" class="fixed inset-0 z-50 bg-matrixDark flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div class="absolute inset-0 scanlines opacity-40"></div>
+        <div class="text-center px-4 max-w-4xl z-10">
+            <div class="inline-block mb-4 px-4 py-1 rounded-full border border-matrixGreen/40 bg-matrixGreen/10 text-matrixGreen text-xs font-orbitron tracking-widest uppercase animate-pulse">
+                GCH Enterprise Security Division
+            </div>
+            <h1 class="font-orbitron text-3xl md:text-6xl font-black text-white mb-3 glow-text tracking-wider">
+                GCH SMART PHONE SECURITY &<br><span class="text-matrixGreen">DEPOSIT MANAGEMENT SYSTEM</span>
+            </h1>
+            <p class="font-orbitron text-sm md:text-xl text-emerald-400/80 tracking-widest uppercase mb-8">
+                SECURE ENTRY. ACCOUNTABLE STORAGE. VERIFIED COLLECTION.
+            </p>
+            <div class="w-64 h-1.5 bg-matrixGreen/20 mx-auto rounded-full overflow-hidden mb-8">
+                <div id="loading-bar" class="h-full bg-matrixGreen w-0 transition-all duration-300"></div>
+            </div>
+            <button id="enter-btn" onclick="dismissIntro()" class="hidden opacity-0 font-orbitron px-8 py-4 bg-matrixGreen/20 hover:bg-matrixGreen text-matrixGreen hover:text-matrixDark border border-matrixGreen font-bold rounded-lg transition-all duration-300 glow-box tracking-widest text-sm uppercase">
+                INITIALIZE COMMAND CENTER
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Application Wrapper -->
+    <div id="main-app" class="opacity-0 transition-opacity duration-1000 min-h-screen flex flex-col">
+        <!-- Top Navigation / Header -->
+        <header class="glass-panel border-b border-matrixBorder sticky top-0 z-30 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 rounded-full bg-matrixGreen animate-ping"></div>
+                <h2 class="font-orbitron font-black text-lg md:text-xl tracking-wider text-white">
+                    GCH <span class="text-matrixGreen">COMMAND CENTER</span>
+                </h2>
+                <span class="hidden md:inline-block text-xs px-2.5 py-0.5 rounded bg-matrixGreen/10 border border-matrixGreen/30 text-matrixGreen font-mono">v4.0.2-SECURE</span>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <nav class="flex flex-wrap items-center justify-center gap-1 md:gap-2">
+                <button onclick="switchTab('dashboard')" class="tab-btn font-orbitron text-xs px-3 py-2 rounded transition-all duration-200 bg-matrixGreen text-matrixDark font-bold" data-target="dashboard">DASHBOARD</button>
+                <button onclick="switchTab('visitors')" class="tab-btn font-orbitron text-xs px-3 py-2 rounded transition-all duration-200 text-emerald-400 hover:bg-matrixGreen/10" data-target="visitors">VISITORS</button>
+                <button onclick="switchTab('employees')" class="tab-btn font-orbitron text-xs px-3 py-2 rounded transition-all duration-200 text-emerald-400 hover:bg-matrixGreen/10" data-target="employees">EMPLOYEES</button>
+                <button onclick="switchTab('matrix')" class="tab-btn font-orbitron text-xs px-3 py-2 rounded transition-all duration-200 text-emerald-400 hover:bg-matrixGreen/10" data-target="matrix">3D MATRIX (200)</button>
+                <button onclick="switchTab('collection')" class="tab-btn font-orbitron text-xs px-3 py-2 rounded transition-all duration-200 text-emerald-400 hover:bg-matrixGreen/10" data-target="collection">COLLECTION</button>
+                <button onclick="switchTab('security')" class="tab-btn font-orbitron text-xs px-3 py-2 rounded transition-all duration-200 text-emerald-400 hover:bg-matrixGreen/10" data-target="security">SECURITY</button>
+                <button onclick="switchTab('reports')" class="tab-btn font-orbitron text-xs px-3 py-2 rounded transition-all duration-200 text-emerald-400 hover:bg-matrixGreen/10" data-target="reports">REPORTS</button>
+            </nav>
+
+            <!-- Quick Action Controls -->
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSimulation()" id="sim-toggle-btn" class="font-orbitron text-xs px-3 py-2 rounded border border-matrixGreen bg-matrixGreen/10 text-matrixGreen hover:bg-matrixGreen hover:text-matrixDark transition-all">
+                    ▶ START DEMO
+                </button>
+                <button onclick="resetDemoData()" class="font-orbitron text-xs px-3 py-2 rounded border border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all">
+                    RESET
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
+            
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Welcome Banner -->
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder relative overflow-hidden">
+                    <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-matrixGreen/10 to-transparent pointer-events-none"></div>
+                    <h3 class="font-orbitron text-2xl font-bold text-white mb-2">SYSTEM OPERATIONAL STATUS: <span class="text-matrixGreen">SECURE</span></h3>
+                    <p class="text-sm text-gray-400 max-w-2xl">
+                        Real-time telemetry and management portal for GCH construction site visitor and employee phone deposits. All secure storage compartments are monitored under active encryption.
+                    </p>
+                </div>
+
+                <!-- Live Statistics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="glass-panel p-5 rounded-xl border border-matrixBorder relative">
+                        <div class="text-xs font-orbitron text-gray-400 uppercase tracking-wider">Total Phones Deposited</div>
+                        <div id="stat-total-deposited" class="text-3xl font-orbitron font-black text-white mt-2 glow-text">0</div>
+                        <div class="absolute right-4 top-4 text-matrixGreen/40 font-orbitron text-2xl">#01</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border border-matrixBorder relative">
+                        <div class="text-xs font-orbitron text-gray-400 uppercase tracking-wider">Visitor Phones</div>
+                        <div id="stat-visitor-phones" class="text-3xl font-orbitron font-black text-cyan-400 mt-2">0</div>
+                        <div class="absolute right-4 top-4 text-cyan-400/40 font-orbitron text-2xl">#02</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border border-matrixBorder relative">
+                        <div class="text-xs font-orbitron text-gray-400 uppercase tracking-wider">Employee Phones</div>
+                        <div id="stat-employee-phones" class="text-3xl font-orbitron font-black text-amber-400 mt-2">0</div>
+                        <div class="absolute right-4 top-4 text-amber-400/40 font-orbitron text-2xl">#03</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border border-matrixBorder relative">
+                        <div class="text-xs font-orbitron text-gray-400 uppercase tracking-wider">Phones Collected</div>
+                        <div id="stat-collected" class="text-3xl font-orbitron font-black text-emerald-400 mt-2">0</div>
+                        <div class="absolute right-4 top-4 text-emerald-400/40 font-orbitron text-2xl">#04</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border border-matrixBorder relative">
+                        <div class="text-xs font-orbitron text-gray-400 uppercase tracking-wider">Currently In Storage</div>
+                        <div id="stat-in-storage" class="text-3xl font-orbitron font-black text-matrixGreen mt-2 glow-text">0</div>
+                        <div class="absolute right-4 top-4 text-matrixGreen/40 font-orbitron text-2xl">#05</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border border-matrixBorder relative">
+                        <div class="text-xs font-orbitron text-gray-400 uppercase tracking-wider">Pending Collections</div>
+                        <div id="stat-pending" class="text-3xl font-orbitron font-black text-yellow-400 mt-2">0</div>
+                        <div class="absolute right-4 top-4 text-yellow-400/40 font-orbitron text-2xl">#06</div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Shortcuts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass-panel p-6 rounded-xl border border-matrixBorder flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-orbitron text-lg font-bold text-white mb-2">VISITOR PHONE CHECK-IN</h4>
+                            <p class="text-xs text-gray-400 mb-4">Register visitors, clients, and contractors. Generates digital QR receipt and assigns secure locker.</p>
+                        </div>
+                        <button onclick="switchTab('visitors')" class="font-orbitron text-xs py-2.5 px-4 bg-matrixGreen/20 hover:bg-matrixGreen text-matrixGreen hover:text-matrixDark border border-matrixGreen rounded font-bold transition-all text-center">
+                            OPEN VISITOR MODULE →
+                        </button>
+                    </div>
+                    <div class="glass-panel p-6 rounded-xl border border-matrixBorder flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-orbitron text-lg font-bold text-white mb-2">EMPLOYEE PHONE CHECK-IN</h4>
+                            <p class="text-xs text-gray-400 mb-4">Fast-track secure storage for permanent GCH staff and department personnel.</p>
+                        </div>
+                        <button onclick="switchTab('employees')" class="font-orbitron text-xs py-2.5 px-4 bg-matrixGreen/20 hover:bg-matrixGreen text-matrixGreen hover:text-matrixDark border border-matrixGreen rounded font-bold transition-all text-center">
+                            OPEN EMPLOYEE MODULE →
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: VISITOR PHONE MANAGEMENT -->
+            <section id="tab-visitors" class="tab-content hidden space-y-6">
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder">
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-1">VISITOR PHONE MANAGEMENT</h3>
+                    <p class="text-xs text-gray-400 mb-6">For visitors, clients, contractors and external guests. Secure temporary deposit.</p>
+                    
+                    <form id="visitor-form" onsubmit="handleVisitorSubmit(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">VISITOR FULL NAME *</label>
+                            <input type="text" id="v-name" required placeholder="e.g. Dawit Bekele" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">ORGANIZATION / COMPANY *</label>
+                            <input type="text" id="v-org" required placeholder="e.g. Horizon Engineering" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">IDENTIFICATION NUMBER (ID / Passport) *</label>
+                            <input type="text" id="v-id" required placeholder="e.g. ET-ID-889342" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">PHONE BRAND *</label>
+                            <input type="text" id="v-brand" required placeholder="e.g. Samsung / Apple" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">PHONE MODEL *</label>
+                            <input type="text" id="v-model" required placeholder="e.g. Galaxy S24 / iPhone 15" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">ASSIGNED STORAGE COMPARTMENT</label>
+                            <select id="v-compartment" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen font-mono">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="md:col-span-2 pt-2">
+                            <button type="submit" class="w-full font-orbitron py-3 bg-matrixGreen text-matrixDark font-bold rounded hover:bg-emerald-400 transition-all tracking-wider text-sm">
+                                GENERATE DEPOSIT & SECURE PHONE
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Recent Visitor Deposits Table -->
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder">
+                    <h4 class="font-orbitron text-sm font-bold text-white mb-4">ACTIVE VISITOR DEPOSITS</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-matrixBorder text-matrixGreen font-orbitron">
+                                    <th class="p-3">REF CODE</th>
+                                    <th class="p-3">VISITOR</th>
+                                    <th class="p-3">COMPANY</th>
+                                    <th class="p-3">PHONE</th>
+                                    <th class="p-3">LOCKER</th>
+                                    <th class="p-3">TIME</th>
+                                    <th class="p-3">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitor-table-body" class="divide-y divide-matrixBorder/50">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: EMPLOYEE PHONE MANAGEMENT -->
+            <section id="tab-employees" class="tab-content hidden space-y-6">
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder">
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-1">EMPLOYEE PHONE MANAGEMENT</h3>
+                    <p class="text-xs text-gray-400 mb-6">For permanent company employees and internal site personnel.</p>
+                    
+                    <form id="employee-form" onsubmit="handleEmployeeSubmit(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">EMPLOYEE ID *</label>
+                            <input type="text" id="e-empId" required placeholder="e.g. GCH-EMP-1042" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">EMPLOYEE NAME *</label>
+                            <input type="text" id="e-name" required placeholder="e.g. Samuel Tadesse" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">COMPANY / DEPARTMENT *</label>
+                            <input type="text" id="e-dept" required placeholder="e.g. Civil Engineering Dept" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div>
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">PHONE BRAND & MODEL *</label>
+                            <input type="text" id="e-phone" required placeholder="e.g. Tecno Phantom X2" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block font-orbitron text-xs text-matrixGreen mb-1">ASSIGNED STORAGE COMPARTMENT</label>
+                            <select id="e-compartment" class="w-full bg-matrixDark border border-matrixBorder rounded p-2.5 text-sm text-white focus:outline-none focus:border-matrixGreen font-mono">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="md:col-span-2 pt-2">
+                            <button type="submit" class="w-full font-orbitron py-3 bg-matrixGreen text-matrixDark font-bold rounded hover:bg-emerald-400 transition-all tracking-wider text-sm">
+                                REGISTER & LOCK EMPLOYEE DEVICE
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Employee Deposits Table -->
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder">
+                    <h4 class="font-orbitron text-sm font-bold text-white mb-4">ACTIVE EMPLOYEE DEPOSITS</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-matrixBorder text-matrixGreen font-orbitron">
+                                    <th class="p-3">REF CODE</th>
+                                    <th class="p-3">EMP ID</th>
+                                    <th class="p-3">NAME</th>
+                                    <th class="p-3">DEPARTMENT</th>
+                                    <th class="p-3">DEVICE</th>
+                                    <th class="p-3">LOCKER</th>
+                                    <th class="p-3">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employee-table-body" class="divide-y divide-matrixBorder/50">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: 3D SMART STORAGE MATRIX -->
+            <section id="tab-matrix" class="tab-content hidden space-y-4">
+                <div class="glass-panel p-4 rounded-xl border border-matrixBorder flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-orbitron text-xl font-bold text-white">3D SMART STORAGE MATRIX (200 COMPARTMENTS)</h3>
+                        <p class="text-xs text-gray-400">Interactive 3D visualization of secure vault compartments. Click any compartment to inspect or manage.</p>
+                    </div>
+                    <div class="flex items-center space-x-4 text-xs font-orbitron">
+                        <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span><span class="text-gray-300">Available</span></span>
+                        <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span><span class="text-gray-300">Occupied</span></span>
+                        <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span><span class="text-gray-300">Pending</span></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Three.js Canvas Container -->
+                    <div class="lg:col-span-2 glass-panel rounded-xl border border-matrixBorder relative h-[500px] overflow-hidden flex items-center justify-center">
+                        <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+                        <div class="absolute bottom-4 left-4 font-orbitron text-[10px] text-matrixGreen bg-matrixDark/80 px-3 py-1.5 rounded border border-matrixGreen/30 pointer-events-none">
+                            [CONTROLS: DRAG TO ROTATE | SCROLL TO ZOOM | CLICK BOX TO INSPECT]
+                        </div>
+                    </div>
+
+                    <!-- Compartment Inspection Panel -->
+                    <div class="glass-panel p-6 rounded-xl border border-matrixBorder flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-orbitron text-sm font-bold text-white">COMPARTMENT INSPECTION</h4>
+                                <span id="inspect-number" class="font-orbitron text-lg font-black text-matrixGreen">SELECT BOX</span>
+                            </div>
+                            <div id="inspect-details" class="space-y-3 text-xs text-gray-300">
+                                <p class="text-gray-500 italic">Click any compartment on the 3D matrix or select from the dropdown to view encrypted storage details.</p>
+                            </div>
+                        </div>
+                        <div id="inspect-actions" class="pt-4 border-t border-matrixBorder space-y-2">
+                            <!-- Action buttons injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: PHONE COLLECTION & VERIFICATION -->
+            <section id="tab-collection" class="tab-content hidden space-y-6">
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder max-w-2xl mx-auto">
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-1">PHONE COLLECTION & VERIFICATION</h3>
+                    <p class="text-xs text-gray-400 mb-6">Enter deposit reference code or ID to initiate verified secure retrieval.</p>
+                    
+                    <div class="flex gap-2 mb-6">
+                        <input type="text" id="search-query" placeholder="Enter Deposit Reference (e.g. GCH-DEP-1001) or ID..." class="flex-grow bg-matrixDark border border-matrixBorder rounded p-3 text-sm text-white focus:outline-none focus:border-matrixGreen font-mono">
+                        <button onclick="searchForCollection()" class="font-orbitron px-6 py-3 bg-matrixGreen text-matrixDark font-bold rounded hover:bg-emerald-400 transition-all text-xs tracking-wider">
+                            SEARCH
+                        </button>
+                    </div>
+
+                    <div id="collection-result" class="hidden space-y-4 pt-4 border-t border-matrixBorder">
+                        <!-- Populated upon search -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: SECURITY MONITORING -->
+            <section id="tab-security" class="tab-content hidden space-y-6">
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder">
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-1">SECURITY MONITORING & ACTIVITY LOG</h3>
+                    <p class="text-xs text-gray-400 mb-6">Real-time audit telemetry and security officer actions.</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-matrixBorder text-matrixGreen font-orbitron">
+                                    <th class="p-3">TIMESTAMP</th>
+                                    <th class="p-3">EVENT TYPE</th>
+                                    <th class="p-3">DETAILS</th>
+                                    <th class="p-3">OFFICER / SYSTEM</th>
+                                    <th class="p-3">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="security-log-body" class="divide-y divide-matrixBorder/50">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 7: MANAGEMENT REPORTS -->
+            <section id="tab-reports" class="tab-content hidden space-y-6">
+                <div class="glass-panel p-6 rounded-xl border border-matrixBorder">
+                    <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+                        <div>
+                            <h3 class="font-orbitron text-xl font-bold text-white">GCH MANAGEMENT REPORTS</h3>
+                            <p class="text-xs text-gray-400">Executive summary, utilization metrics, and audit trails.</p>
+                        </div>
+                        <button onclick="window.print()" class="font-orbitron text-xs px-4 py-2 bg-matrixGreen/20 hover:bg-matrixGreen text-matrixGreen hover:text-matrixDark border border-matrixGreen rounded transition-all font-bold">
+                            EXPORT PDF REPORT
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="glass-panel p-4 rounded border border-matrixBorder">
+                            <div class="text-xs font-orbitron text-gray-400">Storage Utilization</div>
+                            <div id="report-utilization" class="text-2xl font-orbitron font-bold text-matrixGreen mt-1">0%</div>
+                        </div>
+                        <div class="glass-panel p-4 rounded border border-matrixBorder">
+                            <div class="text-xs font-orbitron text-gray-400">Visitor vs Employee Ratio</div>
+                            <div id="report-ratio" class="text-2xl font-orbitron font-bold text-cyan-400 mt-1">0 / 0</div>
+                        </div>
+                        <div class="glass-panel p-4 rounded border border-matrixBorder">
+                            <div class="text-xs font-orbitron text-gray-400">Total Audit Events</div>
+                            <div id="report-audits" class="text-2xl font-orbitron font-bold text-yellow-400 mt-1">0</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h4 class="font-orbitron text-sm font-bold text-white">TRANSACTION AUDIT TRAIL</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-matrixBorder text-matrixGreen font-orbitron">
+                                        <th class="p-3">TRANSACTION ID</th>
+                                        <th class="p-3">TYPE</th>
+                                        <th class="p-3">OWNER</th>
+                                        <th class="p-3">DEVICE</th>
+                                        <th class="p-3">LOCKER</th>
+                                        <th class="p-3">TIMESTAMP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reports-table-body" class="divide-y divide-matrixBorder/50">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="glass-panel border-t border-matrixBorder py-4 px-6 text-center text-xs text-gray-500 font-orbitron">
+            GCH CONSTRUCTION PROJECT • SMART PHONE SECURITY & DEPOSIT MANAGEMENT SYSTEM • 4K COMMAND CENTER PROTOTYPE
+        </footer>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- Application State ---
+        let deposits = [];
+        let auditLogs = [];
+        let compartments = []; // 200 compartments
+        let simulationActive = false;
+        let simInterval = null;
+
+        // Initialize 200 compartments
+        for (let i = 1; i <= 200; i++) {
+            compartments.push({
+                id: i,
+                status: 'available', // available, occupied, pending, processing
+                depositRef: null,
+                ownerName: null,
+                ownerType: null, // visitor or employee
+                phoneDetails: null,
+                time: null
+            });
+        }
+
+        // --- Cinematic Intro Animation ---
+        window.addEventListener('DOMContentLoaded', () => {
+            let progress = 0;
+            const bar = document.getElementById('loading-bar');
+            const btn = document.getElementById('enter-btn');
+            
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 15) + 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    bar.style.width = '100%';
+                    btn.classList.remove('hidden');
+                    setTimeout(() => btn.classList.remove('opacity-0'), 50);
+                } else {
+                    bar.style.width = progress + '%';
+                }
+            }, 150);
+
+            // Pre-seed some realistic demo data
+            seedDemoData();
+        });
+
+        function dismissIntro() {
+            const intro = document.getElementById('intro-screen');
+            const app = document.getElementById('main-app');
+            intro.style.opacity = '0';
+            setTimeout(() => {
+                intro.style.display = 'none';
+                app.style.opacity = '1';
+                initThreeJS();
+                updateDashboard();
+                populateCompartmentDropdowns();
+                renderAllTables();
+            }, 1000);
+        }
+
+        function seedDemoData() {
+            const sampleVisitors = [
+                { name: "Abebe Kebede", org: "Ethio-Con Builders", id: "ET-99210", brand: "Samsung", model: "Galaxy A54", comp: 12 },
+                { name: "Sarah Jenkins", org: "Apex Architecture", id: "UK-PAS-442", brand: "Apple", model: "iPhone 14 Pro", comp: 15 },
+                { name: "Kassahun Bekele", org: "Addis Steel Works", id: "ET-00492", brand: "Xiaomi", model: "Redmi Note 12", comp: 22 }
+            ];
+
+            const sampleEmployees = [
+                { empId: "GCH-EMP-101", name: "Mekonnen Haile", dept: "Site Management", phone: "Tecno Spark 10", comp: 45 },
+                { empId: "GCH-EMP-108", name: "Tigist Alemu", dept: "Safety & Quality", phone: "Samsung Galaxy S23", comp: 46 }
+            ];
+
+            sampleVisitors.forEach((v, idx) => {
+                const ref = `GCH-VIS-${1001 + idx}`;
+                deposits.push({
+                    refCode: ref,
+                    type: 'visitor',
+                    name: v.name,
+                    subInfo: v.org,
+                    idNumber: v.id,
+                    phone: `${v.brand} ${v.model}`,
+                    compartment: v.comp,
+                    time: new Date(Date.now() - (idx + 1) * 1000 * 60 * 35).toLocaleTimeString(),
+                    status: idx === 2 ? 'pending' : 'stored'
+                });
+                compartments[v.comp - 1].status = idx === 2 ? 'pending' : 'occupied';
+                compartments[v.comp - 1].depositRef = ref;
+                compartments[v.comp - 1].ownerName = v.name;
+                compartments[v.comp - 1].ownerType = 'visitor';
+                compartments[v.comp - 1].phoneDetails = `${v.brand} ${v.model}`;
+
+                auditLogs.unshift({
+                    time: new Date().toLocaleTimeString(),
+                    type: 'DEPOSIT',
+                    details: `Visitor phone secured for ${v.name} (${v.org}) in Locker #${v.comp}`,
+                    officer: 'Officer Temesgen',
+                    status: 'SUCCESS'
+                });
+            });
+
+            sampleEmployees.forEach((e, idx) => {
+                const ref = `GCH-EMP-${2001 + idx}`;
+                deposits.push({
+                    refCode: ref,
+                    type: 'employee',
+                    name: e.name,
+                    subInfo: e.dept,
+                    idNumber: e.empId,
+                    phone: e.phone,
+                    compartment: e.comp,
+                    time: new Date(Date.now() - (idx + 1) * 1000 * 60 * 50).toLocaleTimeString(),
+                    status: 'stored'
+                });
+                compartments[e.comp - 1].status = 'occupied';
+                compartments[e.comp - 1].depositRef = ref;
+                compartments[e.comp - 1].ownerName = e.name;
+                compartments[e.comp - 1].ownerType = 'employee';
+                compartments[e.comp - 1].phoneDetails = e.phone;
+
+                auditLogs.unshift({
+                    time: new Date().toLocaleTimeString(),
+                    type: 'EMPLOYEE DEPOSIT',
+                    details: `Employee device secured for ${e.name} (${e.dept}) in Locker #${e.comp}`,
+                    officer: 'Automated Kiosk #2',
+                    status: 'SUCCESS'
+                });
+            });
+        }
+
+        // --- Tab Navigation ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-matrixGreen', 'text-matrixDark', 'font-bold');
+                btn.classList.add('text-emerald-400');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.querySelector(`[data-target="${tabName}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-matrixGreen', 'text-matrixDark', 'font-bold');
+                activeBtn.classList.remove('text-emerald-400');
+            }
+
+            if (tabName === 'matrix' && window.dispatchEvent) {
+                window.dispatchEvent(new Event('resize'));
+            }
+        }
+
+        // --- Dashboard & Statistics Updates ---
+        function updateDashboard() {
+            const totalDeposited = deposits.length;
+            const visitorPhones = deposits.filter(d => d.type === 'visitor').length;
+            const employeePhones = deposits.filter(d => d.type === 'employee').length;
+            const collected = deposits.filter(d => d.status === 'collected').length;
+            const inStorage = deposits.filter(d => d.status === 'stored' || d.status === 'pending').length;
+            const pending = deposits.filter(d => d.status === 'pending').length;
+
+            document.getElementById('stat-total-deposited').innerText = totalDeposited;
+            document.getElementById('stat-visitor-phones').innerText = visitorPhones;
+            document.getElementById('stat-employee-phones').innerText = employeePhones;
+            document.getElementById('stat-collected').innerText = collected;
+            document.getElementById('stat-in-storage').innerText = inStorage;
+            document.getElementById('stat-pending').innerText = pending;
+
+            // Reports updates
+            const occupiedCount = compartments.filter(c => c.status === 'occupied' || c.status === 'pending').length;
+            const utilization = Math.round((occupiedCount / 200) * 100);
+            document.getElementById('report-utilization').innerText = utilization + '%';
+            document.getElementById('report-ratio').innerText = `${visitorPhones} / ${employeePhones}`;
+            document.getElementById('report-audits').innerText = auditLogs.length;
+        }
+
+        // --- Form Handlers ---
+        function populateCompartmentDropdowns() {
+            const vSelect = document.getElementById('v-compartment');
+            const eSelect = document.getElementById('e-compartment');
+            vSelect.innerHTML = '';
+            eSelect.innerHTML = '';
+
+            compartments.forEach(c => {
+                if (c.status === 'available') {
+                    const opt = `<option value="${c.id}">Compartment #${c.id} - AVAILABLE</option>`;
+                    vSelect.innerHTML += opt;
+                    eSelect.innerHTML += opt;
+                }
+            });
+        }
+
+        function handleVisitorSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('v-name').value;
+            const org = document.getElementById('v-org').value;
+            const idNum = document.getElementById('v-id').value;
+            const brand = document.getElementById('v-brand').value;
+            const model = document.getElementById('v-model').value;
+            const compId = parseInt(document.getElementById('v-compartment').value);
+
+            const refCode = `GCH-VIS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            deposits.unshift({
+                refCode,
+                type: 'visitor',
+                name,
+                subInfo: org,
+                idNumber: idNum,
+                phone: `${brand} ${model}`,
+                compartment: compId,
+                time: new Date().toLocaleTimeString(),
+                status: 'stored'
+            });
+
+            // Update compartment
+            const comp = compartments[compId - 1];
+            comp.status = 'occupied';
+            comp.depositRef = refCode;
+            comp.ownerName = name;
+            comp.ownerType = 'visitor';
+            comp.phoneDetails = `${brand} ${model}`;
+
+            auditLogs.unshift({
+                time: new Date().toLocaleTimeString(),
+                type: 'VISITOR DEPOSIT',
+                details: `Visitor ${name} (${org}) deposited phone into Locker #${compId}`,
+                officer: 'Security Guard On Duty',
+                status: 'SUCCESS'
+            });
+
+            alert(`SUCCESS: Phone deposited for ${name}.\nReference Code: ${refCode}\nAssigned Locker: #${compId}`);
+            document.getElementById('visitor-form').reset();
+            updateDashboard();
+            populateCompartmentDropdowns();
+            renderAllTables();
+            update3DMatrixColors();
+        }
+
+        function handleEmployeeSubmit(event) {
+            event.preventDefault();
+            const empId = document.getElementById('e-empId').value;
+            const name = document.getElementById('e-name').value;
+            const dept = document.getElementById('e-dept').value;
+            const phone = document.getElementById('e-phone').value;
+            const compId = parseInt(document.getElementById('e-compartment').value);
+
+            const refCode = `GCH-EMP-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            deposits.unshift({
+                refCode,
+                type: 'employee',
+                name,
+                subInfo: dept,
+                idNumber: empId,
+                phone,
+                compartment: compId,
+                time: new Date().toLocaleTimeString(),
+                status: 'stored'
+            });
+
+            const comp = compartments[compId - 1];
+            comp.status = 'occupied';
+            comp.depositRef = refCode;
+            comp.ownerName = name;
+            comp.ownerType = 'employee';
+            comp.phoneDetails = phone;
+
+            auditLogs.unshift({
+                time: new Date().toLocaleTimeString(),
+                type: 'EMPLOYEE DEPOSIT',
+                details: `Employee ${name} (${dept}) deposited device in Locker #${compId}`,
+                officer: 'Automated Terminal',
+                status: 'SUCCESS'
+            });
+
+            alert(`SUCCESS: Employee device secured.\nReference Code: ${refCode}\nAssigned Locker: #${compId}`);
+            document.getElementById('employee-form').reset();
+            updateDashboard();
+            populateCompartmentDropdowns();
+            renderAllTables();
+            update3DMatrixColors();
+        }
+
+        function renderAllTables() {
+            // Visitor Table
+            const vTable = document.getElementById('visitor-table-body');
+            vTable.innerHTML = '';
+            deposits.filter(d => d.type === 'visitor').forEach(d => {
+                vTable.innerHTML += `
+                    <tr class="hover:bg-matrixGreen/5">
+                        <td class="p-3 font-mono text-matrixGreen">${d.refCode}</td>
+                        <td class="p-3 font-bold text-white">${d.name}</td>
+                        <td class="p-3 text-gray-300">${d.subInfo}</td>
+                        <td class="p-3 text-gray-300">${d.phone}</td>
+                        <td class="p-3 font-mono">#${d.compartment}</td>
+                        <td class="p-3 text-gray-400">${d.time}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] uppercase ${d.status === 'stored' ? 'bg-matrixGreen/20 text-matrixGreen border border-matrixGreen/40' : 'bg-yellow-500/20 text-yellow-400'}">${d.status}</span></td>
+                    </tr>
+                `;
+            });
+
+            // Employee Table
+            const eTable = document.getElementById('employee-table-body');
+            eTable.innerHTML = '';
+            deposits.filter(d => d.type === 'employee').forEach(d => {
+                eTable.innerHTML += `
+                    <tr class="hover:bg-matrixGreen/5">
+                        <td class="p-3 font-mono text-matrixGreen">${d.refCode}</td>
+                        <td class="p-3 font-mono text-cyan-400">${d.idNumber}</td>
+                        <td class="p-3 font-bold text-white">${d.name}</td>
+                        <td class="p-3 text-gray-300">${d.subInfo}</td>
+                        <td class="p-3 text-gray-300">${d.phone}</td>
+                        <td class="p-3 font-mono">#${d.compartment}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] uppercase bg-matrixGreen/20 text-matrixGreen border border-matrixGreen/40">${d.status}</span></td>
+                    </tr>
+                `;
+            });
+
+            // Security Logs
+            const sTable = document.getElementById('security-log-body');
+            sTable.innerHTML = '';
+            auditLogs.forEach(log => {
+                sTable.innerHTML += `
+                    <tr class="hover:bg-matrixGreen/5">
+                        <td class="p-3 font-mono text-gray-400">${log.time}</td>
+                        <td class="p-3 font-orbitron text-matrixGreen">${log.type}</td>
+                        <td class="p-3 text-gray-200">${log.details}</td>
+                        <td class="p-3 text-gray-300">${log.officer}</td>
+                        <td class="p-3"><span class="text-emerald-400 font-bold">${log.status}</span></td>
+                    </tr>
+                `;
+            });
+
+            // Reports Audit Trail
+            const rTable = document.getElementById('reports-table-body');
+            rTable.innerHTML = '';
+            deposits.forEach(d => {
+                rTable.innerHTML += `
+                    <tr class="hover:bg-matrixGreen/5">
+                        <td class="p-3 font-mono text-matrixGreen">${d.refCode}</td>
+                        <td class="p-3 uppercase text-cyan-400">${d.type}</td>
+                        <td class="p-3 font-bold text-white">${d.name}</td>
+                        <td class="p-3 text-gray-300">${d.phone}</td>
+                        <td class="p-3 font-mono">#${d.compartment}</td>
+                        <td class="p-3 text-gray-400">${d.time}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- Three.js 3D Smart Storage Matrix ---
+        let scene, camera, renderer, cubeMeshMap = {};
+        let selectedCompartmentId = null;
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0x00ff66, 2, 50);
+            pointLight.position.set(0, 10, 15);
+            scene.add(pointLight);
+
+            // Build Matrix visual grid of 200 boxes (arranged in 10 columns x 20 rows or similar)
+            const cols = 10;
+            const boxSize = 0.6;
+            const gap = 0.15;
+            
+            cubeMeshMap = {};
+
+            compartments.forEach((comp, idx) => {
+                const r = Math.floor(idx / cols);
+                const c = idx % cols;
+                
+                const geometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+                
+                let color = 0x00ff66; // Available Green
+                if (comp.status === 'occupied') color = 0xff3333; // Red
+                else if (comp.status === 'pending') color = 0xffcc00; // Yellow
+
+                const material = new THREE.MeshStandardMaterial({
+                    color: color,
+                    roughness: 0.3,
+                    metalness: 0.8,
+                    emissive: color,
+                    emissiveIntensity: 0.2
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.x = (c - cols / 2 + 0.5) * (boxSize + gap);
+                mesh.position.y = (10 - r) * (boxSize + gap);
+                mesh.position.z = 0;
+
+                mesh.userData = { compartmentId: comp.id };
+                scene.add(mesh);
+                cubeMeshMap[comp.id] = mesh;
+            });
+
+            camera.position.z = 18;
+
+            // Raycaster for clicking 3D boxes
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            renderer.domElement.addEventListener('click', (event) => {
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(scene.children);
+
+                if (intersects.length > 0) {
+                    const hit = intersects.find(i => i.object.userData && i.object.userData.compartmentId);
+                    if (hit) {
+                        inspectCompartment(hit.object.userData.compartmentId);
+                    }
+                }
+            });
+
+            // Orbit controls simulation (drag to rotate)
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                scene.rotation.y += deltaX * 0.005;
+                scene.rotation.x += deltaY * 0.005;
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                if (!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+
+        function update3DMatrixColors() {
+            compartments.forEach(comp => {
+                const mesh = cubeMeshMap[comp.id];
+                if (mesh) {
+                    let color = 0x00ff66;
+                    if (comp.status === 'occupied') color = 0xff3333;
+                    else if (comp.status === 'pending') color = 0xffcc00;
+                    
+                    mesh.material.color.setHex(color);
+                    mesh.material.emissive.setHex(color);
+                }
+            });
+        }
+
+        function inspectCompartment(id) {
+            selectedCompartmentId = id;
+            const comp = compartments[id - 1];
+            document.getElementById('inspect-number').innerText = `LOCKER #${comp.id}`;
+            
+            const detailsDiv = document.getElementById('inspect-details');
+            const actionsDiv = document.getElementById('inspect-actions');
+
+            if (comp.status === 'available') {
+                detailsDiv.innerHTML = `
+                    <p><span class="text-matrixGreen font-bold">STATUS:</span> AVAILABLE FOR DEPOSIT</p>
+                    <p class="text-gray-400">This secure compartment is currently empty and fully sanitized for use.</p>
+                `;
+                actionsDiv.innerHTML = `
+                    <button onclick="switchTab('visitors')" class="w-full py-2 bg-matrixGreen/20 hover:bg-matrixGreen text-matrixGreen hover:text-matrixDark border border-matrixGreen rounded font-orbitleton text-xs font-bold transition-all">
+                        ASSIGN TO VISITOR →
+                    </button>
+                `;
+            } else {
+                detailsDiv.innerHTML = `
+                    <p><span class="text-red-400 font-bold">STATUS:</span> OCCUPIED (${comp.ownerType?.toUpperCase()})</p>
+                    <p><span class="text-gray-400">Reference:</span> <span class="font-mono text-matrixGreen">${comp.depositRef}</span></p>
+                    <p><span class="text-gray-400">Owner:</span> <span class="text-white font-bold">${comp.ownerName}</span></p>
+                    <p><span class="text-gray-400">Device:</span> <span class="text-white">${comp.phoneDetails}</span></p>
+                `;
+                actionsDiv.innerHTML = `
+                    <button onclick="triggerRetrieval('${comp.depositRef}')" class="w-full py-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500 rounded font-orbitron text-xs font-bold transition-all">
+                        INITIATE VERIFIED RETRIEVAL →
+                    </button>
+                `;
+            }
+        }
+
+        // --- Phone Collection & Verification ---
+        function searchForCollection() {
+            const query = document.getElementById('search-query').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('collection-result');
+
+            const deposit = deposits.find(d => d.refCode === query || d.idNumber.toUpperCase() === query);
+
+            if (!deposit || deposit.status === 'collected') {
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerHTML = `<p class="text-red-400 font-orbitron text-xs">No active deposit found matching reference or ID: "${query}"</p>`;
+                return;
+            }
+
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = `
+                <div class="glass-panel p-4 rounded border border-matrixBorder space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-orbitron text-xs text-matrixGreen">RECORD FOUND</span>
+                        <span class="font-mono text-xs text-yellow-400">LOCKER #${deposit.compartment}</span>
+                    </div>
+                    <p class="text-white font-bold text-sm">${deposit.name} <span class="text-xs text-gray-400 font-normal">(${deposit.subInfo})</span></p>
+                    <p class="text-xs text-gray-300">Device: <span class="text-white">${deposit.phone}</span></p>
+                    <p class="text-xs text-gray-300">Deposit Time: ${deposit.time}</p>
+                    <div class="pt-2">
+                        <button onclick="completeCollection('${deposit.refCode}')" class="w-full py-2.5 bg-matrixGreen text-matrixDark font-orbitron font-bold rounded text-xs hover:bg-emerald-400 transition-all">
+                            VERIFY IDENTITY & OPEN COMPARTMENT
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function triggerRetrieval(refCode) {
+            switchTab('collection');
+            document.getElementById('search-query').value = refCode;
+            searchForCollection();
+        }
+
+        function completeCollection(refCode) {
+            const deposit = deposits.find(d => d.refCode === refCode);
+            if (!deposit) return;
+
+            deposit.status = 'collected';
+            const comp = compartments[deposit.compartment - 1];
+            comp.status = 'available';
+            comp.depositRef = null;
+            comp.ownerName = null;
+            comp.ownerType = null;
+            comp.phoneDetails = null;
+
+            auditLogs.unshift({
+                time: new Date().toLocaleTimeString(),
+                type: 'COLLECTION VERIFIED',
+                details: `Phone retrieved successfully for ${deposit.name} from Locker #${deposit.compartment}`,
+                officer: 'Security Command Officer',
+                status: 'SUCCESS'
+            });
+
+            alert(`VERIFICATION SUCCESSFUL!\nLocker #${deposit.compartment} has opened.\nTransaction recorded and archived.`);
+            document.getElementById('collection-result').classList.add('hidden');
+            document.getElementById('search-query').value = '';
+            updateDashboard();
+            populateCompartmentDropdowns();
+            renderAllTables();
+            update3DMatrixColors();
+        }
+
+        // --- Live Demonstration Simulation ---
+        function toggleSimulation() {
+            const btn = document.getElementById('sim-toggle-btn');
+            if (simulationActive) {
+                clearInterval(simInterval);
+                simulationActive = false;
+                btn.innerText = '▶ START DEMO';
+                btn.classList.remove('bg-red-500', 'text-white');
+                btn.classList.add('bg-matrixGreen/10', 'text-matrixGreen');
+            } else {
+                simulationActive = true;
+                btn.innerText = '⏹ STOP DEMO';
+                btn.classList.remove('bg-matrixGreen/10', 'text-matrixGreen');
+                btn.classList.add('bg-red-500', 'text-white');
+
+                simInterval = setInterval(() => {
+                    // Simulate random incoming visitor or employee deposit
+                    const availableComps = compartments.filter(c => c.status === 'available');
+                    if (availableComps.length === 0) return;
+
+                    const randomComp = availableComps[Math.floor(Math.random() * availableComps.length)];
+                    const isVis = Math.random() > 0.4;
+                    const names = ["Solomon Mamo", "Hanna Girma", "Michael Tesfaye", "Edom Kassahun", "Daniel Worku"];
+                    const name = names[Math.floor(Math.random() * names.length)];
+                    const refCode = `GCH-SIM-${Math.floor(1000 + Math.random() * 9000)}`;
+
+                    deposits.unshift({
+                        refCode,
+                        type: isVis ? 'visitor' : 'employee',
+                        name,
+                        subInfo: isVis ? 'External Contractor' : 'GCH Engineering',
+                        idNumber: `ID-${Math.floor(10000 + Math.random() * 90000)}`,
+                        phone: 'Smartphone Device',
+                        compartment: randomComp.id,
+                        time: new Date().toLocaleTimeString(),
+                        status: 'stored'
+                    });
+
+                    randomComp.status = 'occupied';
+                    randomComp.depositRef = refCode;
+                    randomComp.ownerName = name;
+                    randomComp.ownerType = isVis ? 'visitor' : 'employee';
+                    randomComp.phoneDetails = 'Smartphone Device';
+
+                    auditLogs.unshift({
+                        time: new Date().toLocaleTimeString(),
+                        type: 'AUTO-SIMULATION',
+                        details: `Automated deposit registered for ${name} in Locker #${randomComp.id}`,
+                        officer: 'AI Command Daemon',
+                        status: 'SUCCESS'
+                    });
+
+                    updateDashboard();
+                    populateCompartmentDropdowns();
+                    renderAllTables();
+                    update3DMatrixColors();
+                }, 4000);
+            }
+        }
+
+        function resetDemoData() {
+            if (confirm("Reset all demonstration data and clear storage compartments?")) {
+                if (simulationActive) toggleSimulation();
+                deposits = [];
+                auditLogs = [];
+                compartments.forEach(c => {
+                    c.status = 'available';
+                    c.depositRef = null;
+                    c.ownerName = null;
+                    c.ownerType = null;
+                    c.phoneDetails = null;
+                });
+                seedDemoData();
+                updateDashboard();
+                populateCompartmentDropdowns();
+                renderAllTables();
+                update3DMatrixColors();
+                alert("Demo data successfully reset.");
+            }
+        }
+    </script>
+</body>
+</html>
